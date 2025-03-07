@@ -1,5 +1,13 @@
 import benchmark from 'benchmark';
-import * as wasm from './build/debug.js';
+import {
+  add as addAs,
+  factorial as factorialAs,
+  mergeTwoLists as mergeTwoListsAs,
+  createList,
+} from './build/debug.js';
+import { factorialJs } from './functions/factorial.js';
+import { addJs } from './functions/add.js';
+import { ListNode, mergeTwoListsJs } from './functions/merge-two-lists.js';
 
 function runSuite(suite) {
   console.log('Running benchmark suite', suite.name);
@@ -15,13 +23,7 @@ function runSuite(suite) {
 }
 
 function addTest() {
-  function addJs(a, b) {
-    return a + b;
-  }
-
-  const addAs = wasm.add;
-
-  const suite = new benchmark.Suite();
+  const suite = new benchmark.Suite('add');
 
   suite
     .add('JavaScript', function () {
@@ -35,13 +37,7 @@ function addTest() {
 }
 
 function factorialTest() {
-  function factorialJs(i) {
-    return i === 0 ? 1 : i * factorialJs(i - 1);
-  }
-
-  const factorialAs = wasm.factorial;
-
-  const suite = new benchmark.Suite();
+  const suite = new benchmark.Suite('factorial');
 
   suite
     .add('JavaScript', function () {
@@ -54,7 +50,7 @@ function factorialTest() {
 
   runSuite(suite);
 
-  const suiteLarge = new benchmark.Suite();
+  const suiteLarge = new benchmark.Suite('factorialLarge');
 
   suiteLarge
     .add('JavaScript', function () {
@@ -67,5 +63,33 @@ function factorialTest() {
   runSuite(suiteLarge);
 }
 
+function mergeTwoListsTest() {
+  const suite = new benchmark.Suite('mergeTwoLists');
+
+  suite
+    .add('JavaScript', function () {
+      const firstList = new ListNode(
+        1,
+        new ListNode(2, new ListNode(2, new ListNode(3)))
+      );
+      const secondList = new ListNode(
+        2,
+        new ListNode(3, new ListNode(3, new ListNode(4, new ListNode(5))))
+      );
+
+      mergeTwoListsJs(firstList, secondList);
+    })
+    .add('AssemblyScript', function () {
+      const firstListAs = createList([1, 2, 2, 3]);
+      const secondListAs = createList([2, 3, 3, 4, 5]);
+
+      mergeTwoListsAs(firstListAs, secondListAs);
+    });
+
+  runSuite(suite);
+}
+
 // addTest();
-factorialTest();
+// factorialTest();
+
+mergeTwoListsTest();
